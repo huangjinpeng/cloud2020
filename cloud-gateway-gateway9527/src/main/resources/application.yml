@@ -1,0 +1,40 @@
+server:
+  port: 9527
+spring:
+  application:
+    name: cloud-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true  #开启从注册中心动态创建路由功能，利用微服务名进行路由
+      #
+      routes:
+        - id: payment_routh  #路 lower-case-service-id: true由ID没有固定规则但要求唯一，建议配合服务名
+          #          uri: http://localhost:8001
+#          注册中心动态创建路由功能提供服务的路由地址
+          uri: lb://cloud-payment-service #此处如果有问题，请注意依赖spring-cloud-starter-netflix-eureka-client依赖不能错
+          predicates:
+            - Path=/payment/get/** #断言路径相匹配进行路由
+#            - Cookie=username,zzyy #断言访问者是否带有cookie名为username且值为zzyy
+#            - Query=username, \d+ #要有参数名username并且值为正数才能路由
+        - id: payment_routh2
+          #    uri: 匹配后提供服务的地址
+          uri: lb://cloud-payment-service
+          filters:
+#            - AddRequestParameter=X-Request-Id,1024 #过滤器工厂会在匹配的请求头上加一对请求头，名为X-Request-Id值为1024
+          predicates:
+            - Path=/payment/lb/**  #断言路径相匹配进行路由
+#            - Cookie=username,zzyy #查看访问者是否带有cookie名为username且值为zzyy
+
+eureka:
+  instance:
+      #    eureka.Status显示名称
+    instance-id: gateway9527
+      #    eureka中访问路径显示ip
+    prefer-ip-address: true
+  client:
+    service-url:
+      register-with-eureka: true
+      fetch-registry: true
+      defaultZone: http://eureka7001.com:7001/eureka ,http://eureka7002.com:7002/eureka
